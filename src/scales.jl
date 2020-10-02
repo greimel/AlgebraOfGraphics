@@ -41,14 +41,24 @@ end
 
 extrema_or_Inf(x::AbstractVector) = x isa AbstractVector{<:Number} ? extrema(x) : (Inf, -Inf)
 
+function update_extrema(extrema, x::AbstractVector)
+    a, b = extrema
+    a′, b′ = extrema_or_Inf(x)
+    min(a, a′), max(b, b′)
+end
+
+function update_extrema!(extrema::Observable, x::AbstractVector)
+    extrema[] = update_extrema(extrema[], x)
+    extrema
+end
+
 function get_extrema(specs::AbstractVector{<:AbstractElement})
     d = Dict{Symbol, NTuple{2, Float64}}()
     for spec in specs
         style = spec.style
         for (k, val) in pairs(style.value)
             a, b = get(d, k, (Inf, - Inf))
-            a′, b′ = extrema_or_Inf(val)
-            d[k] = (min(a, a′), max(b, b′))
+            d[k] = update_extrema((a,b), val)
         end
     end
     return d

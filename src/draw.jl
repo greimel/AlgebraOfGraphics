@@ -121,6 +121,8 @@ function layoutplot!(scene, layout, ts::ElementOrList; hidedecorations = false)
     for_colormap = []
     colorname = nothing
 
+    colorrange = Observable((Inf, -Inf))
+    
     for_markersize = []
     markersizename = nothing
     
@@ -153,6 +155,7 @@ function layoutplot!(scene, layout, ts::ElementOrList; hidedecorations = false)
         end
         current = AbstractPlotting.plot!(ax, P, attrs, args...)
         if hasproperty(style.value, :color)
+            current.colorrange = update_extrema!(colorrange, style.value.color)
             push!(for_colormap, current)
             if isnothing(colorname)
                 colorname = kwnames.color
@@ -195,7 +198,7 @@ function layoutplot!(scene, layout, ts::ElementOrList; hidedecorations = false)
                 name₀, P₀, min₀, max₀ = style_dict[k]
                 min₁, max₁ = extrema_or_Inf(dta)
                 min_, max_ = min(min₀, min₁), max(max₀, max₁)
-                @assert name₀ == name
+                #@assert name₀ == name
                 @assert P₀ == P
             else
                 min_, max_ = extrema_or_Inf(dta)
@@ -236,7 +239,7 @@ function layoutplot!(scene, layout, ts::ElementOrList; hidedecorations = false)
         (name, P, min_, max_) = style_dict[:color]
         plt = for_colormap[1]
         cm = plt.colormap
-        colorrange = (min_, max_)
+        #colorrange = (min_, max_)
     
         cbar = MakieLayout.LColorbar(scene, 
             colormap = plt.colormap,
@@ -251,7 +254,8 @@ function layoutplot!(scene, layout, ts::ElementOrList; hidedecorations = false)
         legend_layout[cbar_index, 1, Top()] = LText(scene, string(colorname), padding = (15,15,15,15))
     
         for plt in for_colormap
-          plt.colorrange = colorrange
+        #  @show "! $colorrange"
+          @show plt.colorrange
         end
     end
     
